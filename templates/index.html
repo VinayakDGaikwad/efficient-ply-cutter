@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Efficient Ply Cutter</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #10b981;
+            --border: #334155;
+            --input-bg: #020617;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            padding: 2rem 1rem;
+            text-align: center;
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            width: 95%;
+            max-width: 1400px;
+            padding-bottom: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .item-entry {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 0.5rem;
+        }
+
+        .btn-danger:hover {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 500px;
+            background-color: #000;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            background-color: #1e293b;
+        }
+
+        .stats {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Tooltip style */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Efficient Ply Cutter</h1>
+        <p class="subtitle">Optimize your plywood cuts and minimize wastage</p>
+    </div>
+
+    <div class="main-container">
+
+        <!-- Controls Side -->
+        <div class="card">
+            <h2 class="section-title">Configuration</h2>
+
+            <form id="cutForm">
+                <div class="form-group">
+                    <label>Sheet Dimensions (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="sheetWidth" placeholder="Width" value="2440" required>
+                        <input type="number" id="sheetHeight" placeholder="Height" value="1220" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        Blocks to Cut
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="addBlockRow()">+ Add
+                            Size</button>
+                    </label>
+                    <div id="blocksContainer" class="item-list">
+                        <!-- Rows injected via JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Settings</label>
+                    <div class="input-row" style="align-items:center;">
+                        <input type="checkbox" id="allowRotation" checked style="width: auto; margin-right: 0.5rem;">
+                        <span style="color:var(--text-muted); font-size:0.9rem;">Allow 90° Rotation</span>
+                    </div>
+                    <div class="input-row" style="margin-top: 0.5rem;">
+                        <input type="number" id="kerf" placeholder="Kerf (Blade Width) mm" value="3">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" style="width:100%">Calculate Layout</button>
+            </form>
+        </div>
+
+        <!-- Visualizer Side -->
+        <div class="card">
+            <h2 class="section-title">Result Map</h2>
+            <div class="canvas-container" id="canvasContainer">
+                <span style="color: var(--text-muted);">Run calculation to see the layout</span>
+                <canvas id="layoutCanvas"></canvas>
+                <div id="tooltip" class="tooltip"></div>
+            </div>
+
+            <div class="stats" id="statsContainer" style="opacity: 0.5; pointer-events: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="usedAreaStat">0%</div>
+                    <div class="stat-label">Used Area</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="wasteAreaStat">0%</div>
+                    <div class="stat-label">Waste Area</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="countStat">0</div>
+                    <div class="stat-label">Pieces Cut</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const blocksContainer = document.getElementById('blocksContainer');
+
+        function addBlockRow(w = '', h = '', q = '1') {
+            const div = document.createElement('div');
+            div.className = 'item-entry';
+            div.innerHTML = `
+                <input type="number" placeholder="W" class="block-w" value="${w}" required>
+                <span style="color:#64748b">x</span>
+                <input type="number" placeholder="H" class="block-h" value="${h}" required>
+                <span style="color:#64748b">Q:</span>
+                <input type="number" placeholder="Qty" class="block-q" value="${q}" style="width: 70px;" required>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">✕</button>
+            `;
+            blocksContainer.appendChild(div);
+        }
+
+        // Add one initial row
+        addBlockRow(400, 300, 5);
+        addBlockRow(800, 400, 2);
+
+        document.getElementById('cutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const sheetW = parseFloat(document.getElementById('sheetWidth').value);
+            const sheetH = parseFloat(document.getElementById('sheetHeight').value);
+            const rotation = document.getElementById('allowRotation').checked;
+            const kerf = parseFloat(document.getElementById('kerf').value) || 0;
+
+            const blocks = [];
+            document.querySelectorAll('.item-entry').forEach(row => {
+                const w = parseFloat(row.querySelector('.block-w').value);
+                const h = parseFloat(row.querySelector('.block-h').value);
+                const q = parseInt(row.querySelector('.block-q').value);
+                if (w && h && q) {
+                    blocks.push({ w, h, q });
+                }
+            });
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Calculating...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sheetW, sheetH, blocks, rotation, kerf })
+                });
+
+                const data = await response.json();
+                renderResult(data, sheetW, sheetH);
+                updateStats(data);
+
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during calculation.');
+            } finally {
+                submitBtn.textContent = 'Calculate Layout';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function renderResult(data, sheetW, sheetH) {
+            const container = document.getElementById('canvasContainer');
+            // Remove placeholder text
+            const span = container.querySelector('span');
+            if (span) span.style.display = 'none';
+
+            const canvas = document.getElementById('layoutCanvas');
+            const ctx = canvas.getContext('2d');
+            const tooltip = document.getElementById('tooltip');
+
+            // Set canvas size (fit to container aspect ratio)
+            const containerW = container.clientWidth;
+            const containerH = container.clientHeight;
+
+            // Determine scale
+            const scaleX = (containerW - 40) / sheetW;
+            const scaleY = (containerH - 40) / sheetH;
+            const scale = Math.min(scaleX, scaleY); // fit whole sheet
+
+            const drawW = sheetW * scale;
+            const drawH = sheetH * scale;
+
+            canvas.width = containerW;
+            canvas.height = containerH;
+
+            // Centering offset
+            const offsetX = (containerW - drawW) / 2;
+            const offsetY = (containerH - drawH) / 2;
+
+            // Clear
+            ctx.fillStyle = '#1e293b'; // Canvas bg
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Sheet
+            ctx.fillStyle = '#334155'; // Sheet color
+            ctx.fillRect(offsetX, offsetY, drawW, drawH);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(offsetX, offsetY, drawW, drawH);
+
+            // Draw Rects
+            data.placements.forEach(rect => {
+                const rx = offsetX + (rect.x * scale);
+                const ry = offsetY + (rect.y * scale);
+                const rw = rect.w * scale;
+                const rh = rect.h * scale;
+
+                // Fill
+                ctx.fillStyle = '#6366f1';
+                ctx.fillRect(rx, ry, rw, rh);
+
+                // Border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(rx, ry, rw, rh);
+
+                // Text (Dimensions)
+                if (rw > 30 && rh > 20) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${rect.w}x${rect.h}`, rx + rw / 2, ry + rh / 2);
+                }
+            });
+
+            // Store scale and offsets for interaction if needed
+            canvas.dataset.scale = scale;
+            canvas.dataset.offsetX = offsetX;
+            canvas.dataset.offsetY = offsetY;
+
+            // Mouse hover event for tooltip
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Check intersection
+                const hit = data.placements.find(r => {
+                    const rx = offsetX + (r.x * scale);
+                    const ry = offsetY + (r.y * scale);
+                    const rw = r.w * scale;
+                    const rh = r.h * scale;
+                    return mouseX >= rx && mouseX <= rx + rw && mouseY >= ry && mouseY <= ry + rh;
+                });
+
+                if (hit) {
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.clientX + 10) + 'px'; // global coordinates
+                    tooltip.style.top = (e.clientY + 10) + 'px';
+                    tooltip.innerHTML = `<b>Block</b><br>Size: ${hit.w} x ${hit.h}<br>Pos: ${hit.x}, ${hit.y}`;
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            };
+
+            canvas.onmouseout = () => {
+                tooltip.style.display = 'none';
+            };
+        }
+
+        function updateStats(data) {
+            document.getElementById('statsContainer').style.opacity = '1';
+            document.getElementById('usedAreaStat').textContent = data.efficiency.toFixed(1) + '%';
+            document.getElementById('wasteAreaStat').textContent = (100 - data.efficiency).toFixed(1) + '%';
+            document.getElementById('countStat').textContent = data.count;
+        }
+
+    </script>
+</body>
+
+</html>
